@@ -25,11 +25,11 @@ Orders & Fills
 Miscellaneous
 -	MarketExplorer
 -	Autospreader
--	14_TTAPI_Sample_DragAndDrop
+-	TTAPI_Sample_DragAndDrop
 
 Console
-- 	ASEOrderRouting
--	FillSubscription
--	OrderRouting
--	PriceSubscription
--	SSEOrderRouting
+- TTAPI_Sample_ASEOrderRouting
+-	TTAPI_Sample_FillSubscription
+-	TTAPI_Sample_OrderRouting
+-	TTAPI_Sample_PriceSubscription
+-	TTAPI_Sample_SSEOrderRouting
