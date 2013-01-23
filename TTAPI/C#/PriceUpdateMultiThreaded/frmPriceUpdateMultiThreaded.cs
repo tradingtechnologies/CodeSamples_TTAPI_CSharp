@@ -194,18 +194,23 @@ namespace TTAPI_Samples
         /// <param name="instrument">TT API Instrument</param>
         private void CreateDispatcher(object instrument)
         {
-            WorkerDispatcher dispatcher = Dispatcher.AttachWorkerDispatcher();
+            using (WorkerDispatcher dispatcher = Dispatcher.AttachWorkerDispatcher())
+            {
+                // set the dispatcher to the associated model
+                Instrument instr = instrument as Instrument;
+                m_bindingModels[instr.Key].Dispatcher = dispatcher;
+                m_bindingModels[instr.Key].ThreadID = Thread.CurrentThread.ManagedThreadId.ToString();
 
-            // set the dispatcher to the associated model
-            Instrument instr = instrument as Instrument;
-            m_bindingModels[instr.Key].Dispatcher = dispatcher;
-            m_bindingModels[instr.Key].ThreadID = Thread.CurrentThread.ManagedThreadId.ToString();
+                // Create the price subscription. 
+                CreatePriceSubscription(instr);
 
-            // Create the price subscription. 
-            CreatePriceSubscription(instr);
+                // start routing messages for this thread
+                dispatcher.Run();
 
-            // start routing messages for this thread
-            dispatcher.Run();
+                // Shutdown the price subscription (will be called when the dispatcher.BeginInvokeShutdown is called)
+                m_bindingModels[instr.Key].Subscription.FieldsUpdated -= priceSubscription_FieldsUpdated;
+                m_bindingModels[instr.Key].Subscription.Dispose();
+            }
         }
 
         /// <summary>
