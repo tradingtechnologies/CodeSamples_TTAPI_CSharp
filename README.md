@@ -8,7 +8,7 @@ The repository contains a single Visual Studio 2010 solution which consists of 1
 The projects contained:
 
 Prices
-- 	PriceUpdateDragDrop
+- PriceUpdateDragDrop
 -	PriceUpdateManual
 -	PriceUpdateMultiple
 -	PriceUpdateDepth
@@ -25,11 +25,12 @@ Orders & Fills
 Miscellaneous
 -	MarketExplorer
 -	Autospreader
--	TTAPI_Sample_DragAndDrop
 
 Console
-- TTAPI_Sample_ASEOrderRouting
--	TTAPI_Sample_FillSubscription
--	TTAPI_Sample_OrderRouting
--	TTAPI_Sample_PriceSubscription
--	TTAPI_Sample_SSEOrderRouting
+- Console_PriceSubscription
+-	Console_PriceDepthSubscription
+-	Console_TimeAndSales
+-	Console_OrderRouting
+-	Console_FillSubscription
+- Console_ASEOrderRouting
+- Console_SSEOrderRouting
