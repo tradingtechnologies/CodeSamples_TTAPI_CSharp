@@ -3,7 +3,7 @@ TT API Sample Applications in C#
 
 For use with the Trading Technologies TT API
 
-The repository contains a single Visual Studio 2010 solution which consists of 19 distinct projects, each illustrating a unique feature of the TT API.  For more information about the TT API please see http://devnet.tradingtechnologies.com
+The repository contains a single Visual Studio 2010 solution which consists of 20 distinct projects, each illustrating a unique feature of the TT API.  For more information about the TT API please see http://devnet.tradingtechnologies.com
 
 The projects contained:
 
