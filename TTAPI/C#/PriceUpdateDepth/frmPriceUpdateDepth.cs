@@ -1,19 +1,18 @@
-﻿/***************************************************************************
- *    
- *      Copyright (c) 2005 Trading Technologies International, Inc.
- *                     All Rights Reserved Worldwide
- *
- *        * * *   S T R I C T L Y   P R O P R I E T A R Y   * * *
- *
- * WARNING:  This file is the confidential property of Trading Technologies
- * International, Inc. and is to be maintained in strict confidence.  For
- * use only by those with the express written permission and license from
- * Trading Technologies International, Inc.  Unauthorized reproduction,
- * distribution, use or disclosure of this file or any program (or document)
- * derived from it is prohibited by State and Federal law, and by local law
- * outside of the U.S. 
- *
- ***************************************************************************/
+﻿// **********************************************************************************************************************
+//
+//	Copyright © 2005-2013 Trading Technologies International, Inc.
+//	All Rights Reserved Worldwide
+//
+// 	* * * S T R I C T L Y   P R O P R I E T A R Y * * *
+//
+//  WARNING: This file and all related programs (including any computer programs, example programs, and all source code) 
+//  are the exclusive property of Trading Technologies International, Inc. (“TT”), are protected by copyright law and 
+//  international treaties, and are for use only by those with the express written permission from TT.  Unauthorized 
+//  possession, reproduction, distribution, use or disclosure of this file and any related program (or document) derived 
+//  from it is prohibited by State and Federal law, and by local law outside of the U.S. and may result in severe civil 
+//  and criminal penalties.
+//
+// ************************************************************************************************************************
 
 using System;
 using System.Collections.Generic;
