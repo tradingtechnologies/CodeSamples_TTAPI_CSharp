@@ -18,15 +18,27 @@ namespace TTAPI_Sample_Console_TimeAndSales
         private UniversalLoginTTAPI m_apiInstance = null;
         private WorkerDispatcher m_disp = null;
         private bool m_disposed = false;
+        private object m_lock = new object();
         private InstrumentLookupSubscription m_req = null;
         private TimeAndSalesSubscription m_ts = null;
+        private string m_username = "";
+        private string m_password = "";
 
 
         /// <summary>
-        /// Default constructor
+        /// Private default constructor
         /// </summary>
-        public TTAPIFunctions()
+        private TTAPIFunctions()
         {
+        }
+
+        /// <summary>
+        /// Primary constructor
+        /// </summary>
+        public TTAPIFunctions(string u, string p)
+        {
+            m_username = u;
+            m_password = p;
         }
 
         /// <summary>
@@ -60,7 +72,7 @@ namespace TTAPI_Sample_Console_TimeAndSales
                 // Authenticate your credentials
                 m_apiInstance = api;
                 m_apiInstance.AuthenticationStatusUpdate += new EventHandler<AuthenticationStatusUpdateEventArgs>(apiInstance_AuthenticationStatusUpdate);
-                m_apiInstance.Authenticate("USERNAME", "PASSWORD");
+                m_apiInstance.Authenticate(m_username, m_password);
             }
             else
             {
@@ -79,7 +91,7 @@ namespace TTAPI_Sample_Console_TimeAndSales
                 // lookup an instrument
                 m_req = new InstrumentLookupSubscription(m_apiInstance.Session, Dispatcher.Current,
                     new ProductKey(MarketKey.Cme, ProductType.Future, "ES"),
-                    "Mar13");
+                    "Jun13");
                 m_req.Update += new EventHandler<InstrumentLookupSubscriptionEventArgs>(m_req_Update);
                 m_req.Start();
             }
@@ -135,29 +147,29 @@ namespace TTAPI_Sample_Console_TimeAndSales
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Disposing pattern implementation
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!m_disposed)
+            lock (m_lock)
             {
-                if (disposing)
+                if (!m_disposed)
                 {
-                    // Shutdown all subscriptions
+                    // Unattached callbacks and dispose of all subscriptions
                     if (m_ts != null)
                     {
+                        m_ts.Update -= m_ts_Update;
                         m_ts.Dispose();
                         m_ts = null;
                     }
                     if (m_req != null)
                     {
+                        m_req.Update -= m_req_Update;
                         m_req.Dispose();
                         m_req = null;
+                    }
+
+                    // Shutdown the TT API
+                    if (m_apiInstance != null)
+                    {
+                        m_apiInstance.Shutdown();
+                        m_apiInstance = null;
                     }
 
                     // Shutdown the Dispatcher
@@ -167,16 +179,9 @@ namespace TTAPI_Sample_Console_TimeAndSales
                         m_disp = null;
                     }
 
-                    // Shutdown the TT API
-                    if (m_apiInstance != null)
-                    {
-                        m_apiInstance.Shutdown();
-                        m_apiInstance = null;
-                    }
+                    m_disposed = true;
                 }
             }
-
-            m_disposed = true;
         }
     }
 }

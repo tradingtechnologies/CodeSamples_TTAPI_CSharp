@@ -20,6 +20,7 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
         private UniversalLoginTTAPI m_apiInstance = null;
         private WorkerDispatcher m_disp = null;
         private bool m_disposed = false;
+        private object m_lock = new object();
         private InstrumentLookupSubscription m_req1 = null;
         private InstrumentLookupSubscription m_req2 = null;
         private CreateAutospreaderInstrumentRequest m_casReq = null;
@@ -27,14 +28,25 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
         private ASInstrumentTradeSubscription m_ts = null;
         private string m_orderKey = "";
         private Dictionary<int, Instrument> m_spreadLegKeys = new Dictionary<int, Instrument>();
-        private string m_ASEGateway = "ASE";
+        private string m_ASEGateway = "ASE-A";
+        private string m_username = "";
+        private string m_password = "";
 
 
         /// <summary>
-        /// Default constructor
+        /// Private default constructor
         /// </summary>
-        public TTAPIFunctions()
+        private TTAPIFunctions()
         {
+        }
+
+        /// <summary>
+        /// Primary constructor
+        /// </summary>
+        public TTAPIFunctions(string u, string p)
+        {
+            m_username = u;
+            m_password = p;
         }
 
         /// <summary>
@@ -68,7 +80,7 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
                 // Authenticate your credentials
                 m_apiInstance = api;
                 m_apiInstance.AuthenticationStatusUpdate += new EventHandler<AuthenticationStatusUpdateEventArgs>(apiInstance_AuthenticationStatusUpdate);
-                m_apiInstance.Authenticate("USERNAME", "PASSWORD");
+                m_apiInstance.Authenticate(m_username, m_password);
             }
             else
             {
@@ -120,6 +132,11 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
         /// </summary>
         private bool HaveWeFoundAllLegs()
         {
+            if (m_spreadLegKeys.Count == 0)
+            {
+                return false;
+            }
+
             foreach (Instrument instrument in m_spreadLegKeys.Values)
             {
                 if (instrument == null)
@@ -142,7 +159,7 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
                 Console.WriteLine("Found: {0}", e.Instrument.Name);
 
                 // Update the dictionary to indicate that the instrument was found.
-                InstrumentLookupSubscription instrLookupSub = (InstrumentLookupSubscription)sender;
+                InstrumentLookupSubscription instrLookupSub = sender as InstrumentLookupSubscription;
 
                 if (m_spreadLegKeys.ContainsKey((int)instrLookupSub.Tag))
                 {
@@ -242,7 +259,7 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
             if (e.Value)
             {
                 // launch of AutospreaderInstrument was successful
-                AutospreaderInstrument instr = (AutospreaderInstrument)sender;
+                AutospreaderInstrument instr = sender as AutospreaderInstrument;
 
                 // Subscribe for Inside Market Data
                 m_ps = new PriceSubscription(instr, Dispatcher.Current);
@@ -279,7 +296,7 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
                     {
                         // In this example, the order is submitted to ASE-A.
                         // You should use the order feed that is appropriate for your purposes.
-                        AutospreaderSyntheticOrderProfile op = new AutospreaderSyntheticOrderProfile(this.GetOrderFeedByName(e.Fields.Instrument, m_ASEGateway), 
+                        AutospreaderSyntheticOrderProfile op = new AutospreaderSyntheticOrderProfile(this.GetOrderFeedByName(e.Fields.Instrument, m_ASEGateway),
                             (AutospreaderInstrument)e.Fields.Instrument);
                         op.BuySell = BuySell.Buy;
                         op.OrderQuantity = Quantity.FromInt(e.Fields.Instrument, 10);
@@ -300,7 +317,7 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
                         m_ts.Orders[m_orderKey].LimitPrice != e.Fields.GetBestBidPriceField().Value)
                     {
                         // If there is a working order, reprice it if its price is not the same as the bid
-                        AutospreaderSyntheticOrderProfile op = (AutospreaderSyntheticOrderProfile)m_ts.Orders[m_orderKey].GetOrderProfile();
+                        AutospreaderSyntheticOrderProfile op = m_ts.Orders[m_orderKey].GetOrderProfile() as AutospreaderSyntheticOrderProfile;
                         op.LimitPrice = e.Fields.GetBestBidPriceField().Value;
                         op.Action = OrderAction.Change;
 
@@ -418,44 +435,51 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Disposing pattern implementation
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!m_disposed)
+            lock (m_lock)
             {
-                if (disposing)
+                if (!m_disposed)
                 {
-                    // Shutdown all subscriptions
+                    // Unattached callbacks and dispose of all subscriptions
                     if (m_req1 != null)
                     {
+                        m_req1.Update -= m_req_Update;
                         m_req1.Dispose();
                         m_req1 = null;
                     }
                     if (m_req2 != null)
                     {
+                        m_req2.Update -= m_req_Update;
                         m_req2.Dispose();
                         m_req2 = null;
                     }
                     if (m_ps != null)
                     {
+                        m_ps.FieldsUpdated -= m_ps_FieldsUpdated;
                         m_ps.Dispose();
                         m_ps = null;
                     }
                     if (m_ts != null)
                     {
+                        m_ts.OrderAdded -= m_ts_OrderAdded;
+                        m_ts.OrderDeleted -= m_ts_OrderDeleted;
+                        m_ts.OrderFilled -= m_ts_OrderFilled;
+                        m_ts.OrderRejected -= m_ts_OrderRejected;
+                        m_ts.OrderUpdated -= m_ts_OrderUpdated;
                         m_ts.Dispose();
                         m_ts = null;
                     }
                     if (m_casReq != null)
                     {
+                        m_casReq.Completed -= m_casReq_Completed;
                         m_casReq.Dispose();
                         m_casReq = null;
+                    }
+
+                    // Shutdown the TT API
+                    if (m_apiInstance != null)
+                    {
+                        m_apiInstance.Shutdown();
+                        m_apiInstance = null;
                     }
 
                     // Shutdown the Dispatcher
@@ -465,16 +489,9 @@ namespace TTAPI_Sample_Console_ASEOrderRouting
                         m_disp = null;
                     }
 
-                    // Shutdown the TT API
-                    if (m_apiInstance != null)
-                    {
-                        m_apiInstance.Shutdown();
-                        m_apiInstance = null;
-                    }
+                    m_disposed = true;
                 }
             }
-
-            m_disposed = true;
         }
     }
 }

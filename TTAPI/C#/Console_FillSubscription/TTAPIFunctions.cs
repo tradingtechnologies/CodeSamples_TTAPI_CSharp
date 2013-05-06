@@ -18,14 +18,26 @@ namespace TTAPI_Sample_Console_FillSubscription
         private UniversalLoginTTAPI m_apiInstance = null;
         private WorkerDispatcher m_disp = null;
         private bool m_disposed = false;
+        private object m_lock = new object();
         private FillsSubscription m_fs = null;
+        private string m_username = "";
+        private string m_password = "";
 
 
         /// <summary>
-        /// Default constructor
+        /// Private default constructor
         /// </summary>
-        public TTAPIFunctions()
+        private TTAPIFunctions()
         {
+        }
+
+        /// <summary>
+        /// Primary constructor
+        /// </summary>
+        public TTAPIFunctions(string u, string p)
+        {
+            m_username = u;
+            m_password = p;
         }
 
         /// <summary>
@@ -59,7 +71,7 @@ namespace TTAPI_Sample_Console_FillSubscription
                 // Authenticate your credentials
                 m_apiInstance = api;
                 m_apiInstance.AuthenticationStatusUpdate += new EventHandler<AuthenticationStatusUpdateEventArgs>(apiInstance_AuthenticationStatusUpdate);
-                m_apiInstance.Authenticate("USERNAME", "PASSWORD");
+                m_apiInstance.Authenticate(m_username, m_password);
             }
             else
             {
@@ -162,24 +174,29 @@ namespace TTAPI_Sample_Console_FillSubscription
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Disposing pattern implementation
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!m_disposed)
+            lock (m_lock)
             {
-                if (disposing)
+                if (!m_disposed)
                 {
-                    // Shutdown all subscriptions
+                    // Unattached callbacks and dispose of all subscriptions
                     if (m_fs != null)
                     {
+                        m_fs.FillAdded -= m_fs_FillAdded;
+                        m_fs.FillAmended -= m_fs_FillAmended;
+                        m_fs.FillBookDownload -= m_fs_FillBookDownload;
+                        m_fs.FillDeleted -= m_fs_FillDeleted;
+                        m_fs.FillListEnd -= m_fs_FillListEnd;
+                        m_fs.FillListStart -= m_fs_FillListStart;
+                        m_fs.Rollover -= m_fs_Rollover;
                         m_fs.Dispose();
                         m_fs = null;
+                    }
+
+                    // Shutdown the TT API
+                    if (m_apiInstance != null)
+                    {
+                        m_apiInstance.Shutdown();
+                        m_apiInstance = null;
                     }
 
                     // Shutdown the Dispatcher
@@ -189,16 +206,9 @@ namespace TTAPI_Sample_Console_FillSubscription
                         m_disp = null;
                     }
 
-                    // Shutdown the TT API
-                    if (m_apiInstance != null)
-                    {
-                        m_apiInstance.Shutdown();
-                        m_apiInstance = null;
-                    }
+                    m_disposed = true;
                 }
             }
-
-            m_disposed = true;
         }
     }
 }

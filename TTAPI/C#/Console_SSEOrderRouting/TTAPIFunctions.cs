@@ -19,18 +19,30 @@ namespace TTAPI_Sample_Console_SSEOrderRouting
         private UniversalLoginTTAPI m_apiInstance = null;
         private WorkerDispatcher m_disp = null;
         private bool m_disposed = false;
+        private object m_lock = new object();
         private InstrumentLookupSubscription m_req = null;
         private PriceSubscription m_ps = null;
         private InstrumentTradeSubscription m_ts = null;
         private string m_orderKey = "";
         private bool m_changed = false;
+        private string m_username = "";
+        private string m_password = "";
 
 
         /// <summary>
-        /// Default constructor
+        /// Private default constructor
         /// </summary>
-        public TTAPIFunctions()
+        private TTAPIFunctions()
         {
+        }
+
+        /// <summary>
+        /// Primary constructor
+        /// </summary>
+        public TTAPIFunctions(string u, string p)
+        {
+            m_username = u;
+            m_password = p;
         }
 
         /// <summary>
@@ -64,7 +76,7 @@ namespace TTAPI_Sample_Console_SSEOrderRouting
                 // Authenticate your credentials
                 m_apiInstance = api;
                 m_apiInstance.AuthenticationStatusUpdate += new EventHandler<AuthenticationStatusUpdateEventArgs>(apiInstance_AuthenticationStatusUpdate);
-                m_apiInstance.Authenticate("USERNAME", "PASSWORD");
+                m_apiInstance.Authenticate(m_username, m_password);
             }
             else
             {
@@ -253,10 +265,10 @@ namespace TTAPI_Sample_Console_SSEOrderRouting
 
                 // When half of the order quantity has been disclosed, reduce the price of all
                 // subsequent child orders by 1 tick by reducing the parent order by 1 tick
-                SseSyntheticOrder sseOrder = (SseSyntheticOrder)m_ts.Orders[m_orderKey];
+                SseSyntheticOrder sseOrder = m_ts.Orders[m_orderKey] as SseSyntheticOrder;
                 if (m_changed == false && sseOrder.UndisclosedQuantity <= (sseOrder.OrderQuantity / 2))
                 {
-                    OrderProfile op = (OrderProfile)sseOrder.GetOrderProfile();
+                    OrderProfile op = sseOrder.GetOrderProfile() as OrderProfile;
                     op.LimitPrice--;
                     op.Action = OrderAction.Change;
 
@@ -295,34 +307,39 @@ namespace TTAPI_Sample_Console_SSEOrderRouting
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Disposing pattern implementation
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!m_disposed)
+            lock (m_lock)
             {
-                if (disposing)
+                if (!m_disposed)
                 {
-                    // Shutdown all subscriptions
+                    // Unattached callbacks and dispose of all subscriptions
                     if (m_req != null)
                     {
+                        m_req.Update -= m_req_Update;
                         m_req.Dispose();
                         m_req = null;
                     }
                     if (m_ps != null)
                     {
+                        m_ps.FieldsUpdated -= m_ps_FieldsUpdated;
                         m_ps.Dispose();
                         m_ps = null;
                     }
                     if (m_ts != null)
                     {
+                        m_ts.OrderAdded -= m_ts_OrderAdded;
+                        m_ts.OrderDeleted -= m_ts_OrderDeleted;
+                        m_ts.OrderFilled -= m_ts_OrderFilled;
+                        m_ts.OrderRejected -= m_ts_OrderRejected;
+                        m_ts.OrderUpdated -= m_ts_OrderUpdated;
                         m_ts.Dispose();
                         m_ts = null;
+                    }
+
+                    // Shutdown the TT API
+                    if (m_apiInstance != null)
+                    {
+                        m_apiInstance.Shutdown();
+                        m_apiInstance = null;
                     }
 
                     // Shutdown the Dispatcher
@@ -332,16 +349,9 @@ namespace TTAPI_Sample_Console_SSEOrderRouting
                         m_disp = null;
                     }
 
-                    // Shutdown the TT API
-                    if (m_apiInstance != null)
-                    {
-                        m_apiInstance.Shutdown();
-                        m_apiInstance = null;
-                    }
+                    m_disposed = true;
                 }
             }
-
-            m_disposed = true;
         }
     }
 }

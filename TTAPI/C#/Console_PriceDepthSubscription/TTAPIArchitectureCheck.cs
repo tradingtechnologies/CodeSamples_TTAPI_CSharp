@@ -10,15 +10,7 @@ namespace TTAPI_Sample_Console_PriceDepthSubscription
     /// </summary>
     class TTAPIArchitectureCheck
     {
-        private string errorString = null;
-
-        public string ErrorString
-        {
-            get
-            {
-                return errorString;
-            }
-        }
+        public string ErrorString { get; private set; }
 
         /// <summary>
         /// Default constructor
@@ -47,19 +39,19 @@ namespace TTAPI_Sample_Console_PriceDepthSubscription
 
                 if (!appKinds.HasFlag(apiKinds))
                 {
-                    errorString = String.Format("WARNING: This application must be compiled as a {0} application to run with a {0} version of TT API.",
+                    ErrorString = String.Format("WARNING: This application must be compiled as a {0} application to run with a {0} version of TT API.",
                                   (apiKinds.HasFlag(System.Reflection.PortableExecutableKinds.Required32Bit) ? "32Bit" : "64bit"));
                     return false;
                 }
                 else
                 {
-                    errorString = "";
+                    ErrorString = "";
                     return true;
                 }
             }
             catch (Exception err)
             {
-                errorString = String.Format("ERROR: An error occured while attempting to verify the application build settings match the architecture of the TT API installed. {0}", err.Message);
+                ErrorString = String.Format("ERROR: An error occured while attempting to verify the application build settings match the architecture of the TT API installed. {0}", err.Message);
                 return false;
             }
         }

@@ -26,19 +26,22 @@ namespace TTAPI_Sample_Console_PriceSubscription
     {
         static void Main(string[] args)
         {
+            string ttUserId = "JSMITH";
+            string ttPassword = "12345678";
+
             // Check that the compiler settings are compatible with the version of TT API installed
             TTAPIArchitectureCheck archCheck = new TTAPIArchitectureCheck();
             if (archCheck.validate())
             {
                 Console.WriteLine("Architecture check passed.");
 
-                // Doctates whether TT API will be started on its own thread
+                // Dictates whether TT API will be started on its own thread
                 bool startOnSeparateThread = false;
 
                 if (startOnSeparateThread)
                 {
                     // Start TT API on a separate thread
-                    TTAPIFunctions tf = new TTAPIFunctions();
+                    TTAPIFunctions tf = new TTAPIFunctions(ttUserId, ttPassword);
                     Thread workerThread = new Thread(tf.Start);
                     workerThread.Name = "TT API Thread";
                     workerThread.Start();
@@ -48,7 +51,7 @@ namespace TTAPI_Sample_Console_PriceSubscription
                 else
                 {
                     // Start the TT API on the same thread
-                    using (TTAPIFunctions tf = new TTAPIFunctions())
+                    using (TTAPIFunctions tf = new TTAPIFunctions(ttUserId, ttPassword))
                     {
                         tf.Start();
                     }
