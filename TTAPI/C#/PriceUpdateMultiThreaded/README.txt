@@ -31,4 +31,9 @@ Notes:			None
 
 Version:		1.1.0
 Date Created:	01/18/2013
-Notes:			Updated for GitHub.  
+Notes:			Updated for GitHub.
+
+Version:		1.1.1
+Date Created:	05/23/2013
+Notes:			Fixed issue with shutdown.  Move the PriceSubscription within
+				the InstrumentModel class.

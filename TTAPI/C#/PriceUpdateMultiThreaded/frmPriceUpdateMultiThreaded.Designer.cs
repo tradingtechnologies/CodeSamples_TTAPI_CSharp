@@ -859,6 +859,7 @@
             this.Menu = this.mainMenu1;
             this.Name = "frmPriceUpdateMultiThreaded";
             this.Text = "PriceUpdateMultiThreaded";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmPriceUpdateMultiThreaded_FormClosing);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.frmPriceUpdateMultiThreaded_DragDrop);
             this.DragOver += new System.Windows.Forms.DragEventHandler(this.frmPriceUpdateMultiThreaded_DragOver);
             this.gboInstrument_2.ResumeLayout(false);

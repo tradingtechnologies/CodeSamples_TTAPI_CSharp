@@ -123,7 +123,18 @@ namespace TTAPI_Samples
                 if (m_bindingModels != null)
                 {
                     foreach (var entry in m_bindingModels)
+                    {
+                        entry.Value.ThreadID = "";
+                        entry.Value.Exchange = "";
+                        entry.Value.Product = "";
+                        entry.Value.ProdType = "";
+                        entry.Value.Contract = "";
+                        entry.Value.BidPrice = "";
+                        entry.Value.AskPrice = "";
+                        entry.Value.LastPrice = "";
+
                         entry.Value.Dispatcher.BeginInvokeShutdown();
+                    }
                 }
 
                 // Release any current data bindings
@@ -207,46 +218,11 @@ namespace TTAPI_Samples
                 Instrument instr = instrument as Instrument;
                 m_bindingModels[instr.Key].Dispatcher = dispatcher;
                 m_bindingModels[instr.Key].ThreadID = Thread.CurrentThread.ManagedThreadId.ToString();
-
-                // Create the price subscription. 
-                CreatePriceSubscription(instr);
+                m_bindingModels[instr.Key].StartPriceSubscription(instr);
 
                 // start routing messages for this thread
                 dispatcher.Run();
-
-                // Shutdown the price subscription (will be called when the dispatcher.BeginInvokeShutdown is called)
-                m_bindingModels[instr.Key].Subscription.FieldsUpdated -= priceSubscription_FieldsUpdated;
-                m_bindingModels[instr.Key].Subscription.Dispose();
             }
-        }
-
-        /// <summary>
-        /// Create a price subscription and assign it to the InstrumentModel
-        /// </summary>
-        /// <param name="instrument">Instrument to subscribe to</param>
-        private void CreatePriceSubscription(Instrument instrument)
-        {
-            // Create a Price Subscription, this should be called from a worker thread
-            // Dispatcher.Current could be used in place of m_BindingModels[instrument.Key].Dispatcher 
-            // because the current thread should have the correct dispatcher at this point.
-            PriceSubscription priceSubscription = new PriceSubscription(instrument, m_bindingModels[instrument.Key].Dispatcher);
-            m_bindingModels[instrument.Key].Subscription = priceSubscription;
-
-            priceSubscription = new PriceSubscription(instrument, m_bindingModels[instrument.Key].Dispatcher);
-            priceSubscription.Settings = new PriceSubscriptionSettings(PriceSubscriptionType.InsideMarket);
-            priceSubscription.FieldsUpdated += new FieldsUpdatedEventHandler(priceSubscription_FieldsUpdated);
-            priceSubscription.Start();
-        }
-
-        /// <summary>
-        /// Event to notify the application there has been a change in the price feed
-        /// Here we pull the values and publish them to the GUI
-        /// </summary>
-        void priceSubscription_FieldsUpdated(object sender, FieldsUpdatedEventArgs e)
-        {
-            m_bindingModels[e.Fields.Instrument.Key].BidPrice = e.Fields.GetDirectBidPriceField().FormattedValue;
-            m_bindingModels[e.Fields.Instrument.Key].AskPrice = e.Fields.GetDirectAskPriceField().FormattedValue;
-            m_bindingModels[e.Fields.Instrument.Key].LastPrice = e.Fields.GetLastTradedPriceField().FormattedValue;
         }
 
         /// <summary>
@@ -355,6 +331,22 @@ namespace TTAPI_Samples
             aboutForm.ShowDialog(this);
         }
 
+        /// <summary>
+        /// Windows Form FormClosing event.
+        /// Dispose of any running threads at this point.
+        /// </summary>
+        private void frmPriceUpdateMultiThreaded_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            foreach (InstrumentModel model in m_bindingModels.Values)
+            {
+                // Ask each thread dispatcher to shutdown.
+                model.Dispatcher.BeginInvokeShutdown();
+            }
+
+            m_TTAPI.Shutdown();
+            m_TTAPI = null;
+        }
+
         #region InstrumentModel
 
         /// <summary>
@@ -372,6 +364,7 @@ namespace TTAPI_Samples
             delegate void PropertyChangedCallback(string info);
 
             private WorkerDispatcher m_dispatcher = null;
+            private PriceSubscription m_priceSubscription = null;
 
             // event to fire so the bound control knows when to update
             public event PropertyChangedEventHandler PropertyChanged;
@@ -390,7 +383,7 @@ namespace TTAPI_Samples
             /// Class constructor
             /// </summary>
             /// <param name="parent">Parent form which owns the controls to update</param>
-            public InstrumentModel(Form parent) 
+            public InstrumentModel(Form parent)
             {
                 m_ParentForm = parent;
             }
@@ -415,27 +408,12 @@ namespace TTAPI_Samples
             /// </summary>
             void shutdownStarted(object sender, DispatcherShutdownEventArgs e)
             {
-                cleanup();
-            }
-
-            /// <summary>
-            /// Set all binding fields to blank.
-            /// 
-            /// Cleanup this class will also dispose of the price subscription. 
-            /// </summary>
-            private void cleanup()
-            {
-                this.ThreadID = "";
-                this.Exchange = "";
-                this.Product = "";
-                this.ProdType = "";
-                this.Contract = "";
-                this.BidPrice = "";
-                this.AskPrice = "";
-                this.LastPrice = "";
-
-                this.Subscription.Dispose();
-                this.Subscription = null;
+                if (m_priceSubscription != null)
+                {
+                    m_priceSubscription.FieldsUpdated -= priceSubscription_FieldsUpdated;
+                    m_priceSubscription.Dispose();
+                    m_priceSubscription = null;
+                }
             }
 
             /// <summary>
@@ -459,13 +437,32 @@ namespace TTAPI_Samples
                 }
             }
 
-            /*
-             * 
-             *  PUBLIC ACCESSOR METHODS
-             * 
-             */
+            /// <summary>
+            /// Create a price subscription
+            /// </summary>
+            /// <param name="instrument">Instrument to subscribe to</param>
+            public void StartPriceSubscription(Instrument instrument)
+            {
+                m_priceSubscription = new PriceSubscription(instrument, m_dispatcher);
+                m_priceSubscription.Settings = new PriceSubscriptionSettings(PriceSubscriptionType.InsideMarket);
+                m_priceSubscription.FieldsUpdated += new FieldsUpdatedEventHandler(priceSubscription_FieldsUpdated);
+                m_priceSubscription.Start();
+            }
 
-            public PriceSubscription Subscription { get; set; }
+            /// <summary>
+            /// Event where the price subscription fields have been updated.  Assign
+            /// the updates values to the GUI.
+            /// </summary>
+            void priceSubscription_FieldsUpdated(object sender, FieldsUpdatedEventArgs e)
+            {
+                this.BidPrice = e.Fields.GetDirectBidPriceField().FormattedValue;
+                this.AskPrice = e.Fields.GetDirectAskPriceField().FormattedValue;
+                this.LastPrice = e.Fields.GetLastTradedPriceField().FormattedValue;
+            }
+
+            /*
+             *  PUBLIC ACCESSOR METHODS
+             */
 
             public string ThreadID
             {
@@ -564,7 +561,7 @@ namespace TTAPI_Samples
                 this.Invoke(componentCB, new object[] { control, message });
             }
             else
-            { 
+            {
                 // cast the control 
                 dynamic ctrl = (dynamic)control;
 
@@ -574,17 +571,5 @@ namespace TTAPI_Samples
         }
         #endregion
 
-        /// <summary>
-        /// Windows Form FormClosing event.
-        /// Dispose of any running threads at this point.
-        /// </summary>
-        private void frmPriceUpdateMultiThreaded_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            foreach (InstrumentModel model in m_bindingModels.Values)
-            {
-                // Ask each thread dispatcher to shutdown.
-                model.Dispatcher.BeginInvokeShutdown();
-            }
-        }
     }
 }
