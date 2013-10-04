@@ -103,8 +103,7 @@ namespace TTAPI_Samples
                 // Dispose of all request objects
                 foreach (InstrumentModel model in m_bindingModels.Values)
                 {
-                    // Ask each thread dispatcher to shutdown.
-                    model.Dispatcher.BeginInvokeShutdown();
+                    model.Dispose();
                 }
 
                 TTAPI.ShutdownCompleted += new EventHandler(TTAPI_ShutdownCompleted);
@@ -279,9 +278,6 @@ namespace TTAPI_Samples
 
                 // start routing messages for this thread
                 dispatcher.Run();
-
-                // Dispose of the InstrumentModel if the dispatcher is shutdown
-                m_bindingModels[instr.Key].Dispose();
             }
         }
 
@@ -459,6 +455,8 @@ namespace TTAPI_Samples
                             m_priceSubscription.Dispose();
                             m_priceSubscription = null;
                         }
+
+                        m_dispatcher.BeginInvokeShutdown();
                     }
 
                     m_disposed = true;
@@ -469,7 +467,7 @@ namespace TTAPI_Samples
             /// Set/Get Dispatcher.
             /// Add ShutdownStarted event when dispatcher is attached.
             /// </summary>
-            public WorkerDispatcher Dispatcher 
+            public WorkerDispatcher Dispatcher
             {
                 get { return m_dispatcher; }
                 set { m_dispatcher = value; }
