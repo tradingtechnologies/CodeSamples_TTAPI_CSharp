@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TTAPI_Sample_Console_SSEOrderRouting", "TTAPI_Sample_Console_SSEOrderRouting\TTAPI_Sample_Console_SSEOrderRouting.csproj", "{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}.Debug|x64.ActiveCfg = Debug|x64
+		{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}.Debug|x64.Build.0 = Debug|x64
+		{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}.Debug|x86.ActiveCfg = Debug|x86
+		{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}.Debug|x86.Build.0 = Debug|x86
+		{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}.Release|x64.ActiveCfg = Release|x64
+		{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}.Release|x64.Build.0 = Release|x64
+		{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}.Release|x86.ActiveCfg = Release|x86
+		{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
