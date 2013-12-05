@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{FAB7FDAB-137F-4DC3-9032-5AC6BF88CB1B}</ProjectGuid>
+    <ProjectGuid>{07809E87-0420-40F6-B872-055A0118E678}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TTAPI_Sample_Console_SSEOrderRouting</RootNamespace>

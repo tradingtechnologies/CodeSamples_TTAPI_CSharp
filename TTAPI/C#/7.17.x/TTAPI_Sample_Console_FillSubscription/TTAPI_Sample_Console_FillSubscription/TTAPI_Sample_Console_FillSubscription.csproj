@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{BF85A77E-210F-46C0-8BE7-D0FBBB5B79C5}</ProjectGuid>
+    <ProjectGuid>{453D9679-F2B1-45BD-A25A-BB9D724EFD92}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TTAPI_Sample_Console_FillSubscription</RootNamespace>

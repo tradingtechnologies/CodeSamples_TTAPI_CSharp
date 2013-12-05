@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8ACC1ADF-79A2-4C46-85D8-F98C8BCB4308}</ProjectGuid>
+    <ProjectGuid>{DC6BEF0C-E565-4974-ACE4-3DAEE66D6972}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TTAPI_Sample_Console_TimeAndSales</RootNamespace>
