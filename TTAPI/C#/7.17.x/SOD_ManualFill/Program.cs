@@ -21,6 +21,7 @@ namespace TTAPI_Samples
             XTraderModeTTAPIOptions envOptions = new XTraderModeTTAPIOptions();
             // Enable or Disable the TT API Implied Engine
             envOptions.EnableImplieds = false;
+            envOptions.SupportPublishSOD = true;
 
             // Create and attach a UI Dispatcher to the main Form
             // When the form exits, this scoping block will auto-dispose of the Dispatcher
@@ -32,7 +33,7 @@ namespace TTAPI_Samples
                 // Create an instance of TTAPI.
                 frmSOD_ManualFill sodManualFill = new frmSOD_ManualFill();
                 ApiInitializeHandler handler = new ApiInitializeHandler(sodManualFill.ttApiInitHandler);
-                TTAPI.CreateXTraderModeTTAPI(disp, handler);
+                TTAPI.CreateXTraderModeTTAPI(disp, envOptions, handler);
 
                 Application.Run(sodManualFill);
             }
