@@ -1,2 +1,0 @@
-C:\Users\jbramlett\workspace\CodeSamples_TTAPI_CSharp\TTAPI\C#\7.17.x\PriceUpdateDragDrop\bin\x64\Debug\PriceUpdateWithDragDrop.exe.config
-C:\Users\jbramlett\Documents\GitHub\CodeSamples_TTAPI_CSharp\TTAPI\C#\7.17.x\PriceUpdateDragDrop\bin\x64\Debug\PriceUpdateWithDragDrop.exe.config
