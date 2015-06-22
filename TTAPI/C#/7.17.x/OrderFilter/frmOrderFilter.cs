@@ -261,9 +261,7 @@ namespace TTAPI_Samples
                     this.cboOrderFeed.SelectedIndex = 0;
 
                     // This sample will monitor new orders and deleting working orders
-                    m_instrumentTradeSubscription = new InstrumentTradeSubscription(m_TTAPI.Session, Dispatcher.Current, e.Instrument);
-                    m_instrumentTradeSubscription.OrderAdded += new EventHandler<OrderAddedEventArgs>(instrumentTradeSubscription_OrderAdded);
-                    m_instrumentTradeSubscription.OrderDeleted += new EventHandler<OrderDeletedEventArgs>(instrumentTradeSubscription_OrderDeleted);
+                    m_instrumentTradeSubscription = getNewInstrumentTradeSubscription(e.Instrument);
                     m_instrumentTradeSubscription.Start();
                 }
                 catch (Exception err)
@@ -279,6 +277,15 @@ namespace TTAPI_Samples
             {
                 Console.WriteLine(String.Format("TT API FindInstrument Instrument Not Found: (Still Searching) {0}", e.Error));
             }
+        }
+
+        private InstrumentTradeSubscription getNewInstrumentTradeSubscription(Instrument pInstrument)
+        {
+            InstrumentTradeSubscription tITSubsctiption = new InstrumentTradeSubscription(m_TTAPI.Session, Dispatcher.Current, pInstrument);
+            tITSubsctiption.OrderAdded += new EventHandler<OrderAddedEventArgs>(instrumentTradeSubscription_OrderAdded);
+            tITSubsctiption.OrderDeleted += new EventHandler<OrderDeletedEventArgs>(instrumentTradeSubscription_OrderDeleted);
+
+            return tITSubsctiption;
         }
 
         #endregion
@@ -392,6 +399,10 @@ namespace TTAPI_Samples
             // return if object is not instantiated
             if (m_instrumentTradeSubscription == null)
                 return;
+
+            Instrument tInstrument = m_instrumentTradeSubscription.Instrument;
+            m_instrumentTradeSubscription.Dispose();
+            m_instrumentTradeSubscription = getNewInstrumentTradeSubscription(tInstrument);
 
             // no filter to set, return
             if (this.cboFilter1.SelectedIndex < 0)
