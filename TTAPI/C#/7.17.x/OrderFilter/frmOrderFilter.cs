@@ -273,7 +273,7 @@ namespace TTAPI_Samples
             }
         }
 
-        private void CreateInstrumentTradeSubscription(Instrument pInstrument)
+        private void CreateInstrumentTradeSubscription(Instrument instrument)
         {
             if (m_instrumentTradeSubscription != null)
             {
@@ -281,7 +281,7 @@ namespace TTAPI_Samples
                 m_instrumentTradeSubscription = null;
             }
 
-            m_instrumentTradeSubscription = new InstrumentTradeSubscription(m_TTAPI.Session, Dispatcher.Current, pInstrument);
+            m_instrumentTradeSubscription = new InstrumentTradeSubscription(m_TTAPI.Session, Dispatcher.Current, instrument);
             m_instrumentTradeSubscription.OrderAdded += new EventHandler<OrderAddedEventArgs>(instrumentTradeSubscription_OrderAdded);
             m_instrumentTradeSubscription.OrderDeleted += new EventHandler<OrderDeletedEventArgs>(instrumentTradeSubscription_OrderDeleted);
         }
