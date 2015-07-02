@@ -247,12 +247,6 @@ namespace TTAPI_Samples
                     this.txtProductType.Text = e.Instrument.Product.Type.ToString();
                     this.txtContract.Text = e.Instrument.GetFormattedName(InstrumentNameFormat.User);
 
-                    if (m_instrumentTradeSubscription != null)
-                    {
-                        m_instrumentTradeSubscription.Dispose();
-                        m_instrumentTradeSubscription = null;
-                    }
-
                     // populate the order feed dropdown
                     this.cboOrderFeed.Items.Clear();
                     foreach (OrderFeed orderFeed in e.Instrument.GetValidOrderFeeds())
@@ -261,9 +255,7 @@ namespace TTAPI_Samples
                     this.cboOrderFeed.SelectedIndex = 0;
 
                     // This sample will monitor new orders and deleting working orders
-                    m_instrumentTradeSubscription = new InstrumentTradeSubscription(m_TTAPI.Session, Dispatcher.Current, e.Instrument);
-                    m_instrumentTradeSubscription.OrderAdded += new EventHandler<OrderAddedEventArgs>(instrumentTradeSubscription_OrderAdded);
-                    m_instrumentTradeSubscription.OrderDeleted += new EventHandler<OrderDeletedEventArgs>(instrumentTradeSubscription_OrderDeleted);
+                    CreateInstrumentTradeSubscription(e.Instrument);
                     m_instrumentTradeSubscription.Start();
                 }
                 catch (Exception err)
@@ -279,6 +271,19 @@ namespace TTAPI_Samples
             {
                 Console.WriteLine(String.Format("TT API FindInstrument Instrument Not Found: (Still Searching) {0}", e.Error));
             }
+        }
+
+        private void CreateInstrumentTradeSubscription(Instrument instrument)
+        {
+            if (m_instrumentTradeSubscription != null)
+            {
+                m_instrumentTradeSubscription.Dispose();
+                m_instrumentTradeSubscription = null;
+            }
+
+            m_instrumentTradeSubscription = new InstrumentTradeSubscription(m_TTAPI.Session, Dispatcher.Current, instrument);
+            m_instrumentTradeSubscription.OrderAdded += new EventHandler<OrderAddedEventArgs>(instrumentTradeSubscription_OrderAdded);
+            m_instrumentTradeSubscription.OrderDeleted += new EventHandler<OrderDeletedEventArgs>(instrumentTradeSubscription_OrderDeleted);
         }
 
         #endregion
@@ -392,6 +397,8 @@ namespace TTAPI_Samples
             // return if object is not instantiated
             if (m_instrumentTradeSubscription == null)
                 return;
+
+            CreateInstrumentTradeSubscription(m_instrumentTradeSubscription.Instrument);
 
             // no filter to set, return
             if (this.cboFilter1.SelectedIndex < 0)
