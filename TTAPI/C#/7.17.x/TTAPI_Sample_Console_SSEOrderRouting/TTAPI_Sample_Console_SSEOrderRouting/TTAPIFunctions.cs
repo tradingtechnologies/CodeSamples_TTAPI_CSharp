@@ -80,8 +80,16 @@ namespace TTAPI_Sample_Console_SSEOrderRouting
             }
             else
             {
-                Console.WriteLine("TT API Initialization Failed: {0}", ex.Message);
-                Dispose();
+                if (ex.IsRecoverable == true)
+                {
+                    // This error is recoverable and can be waited out
+                    Console.WriteLine("Waiting for TT API to start");
+                }
+                else
+                {
+                    Console.WriteLine("TT API Initialization Failed: {0}", ex.Message);
+                    Dispose();
+                }
             }
         }
 
